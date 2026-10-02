@@ -41,6 +41,10 @@ body {
 
     font-family:
         Inter,
+        "Noto Sans Devanagari",
+        "Noto Sans Gujarati",
+        "Noto Sans Tamil",
+        "Noto Sans Telugu",
         Arial,
         sans-serif;
 
@@ -1917,6 +1921,140 @@ footer small {
 
         align-items: flex-start;
 
+    }
+
+}
+
+/* ================= LANGUAGE SUPPORT ================= */
+
+.nav-actions {
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+}
+
+.lang-switch {
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    height: 42px;
+    padding: 0 10px;
+
+    background: var(--card);
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 10px;
+
+    transition: border-color 0.25s;
+
+}
+
+.lang-switch:focus-within {
+
+    border-color: var(--primary);
+
+}
+
+.lang-switch select {
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+    color: var(--text);
+
+    font-weight: 600;
+    cursor: pointer;
+
+    max-width: 110px;
+
+}
+
+/* keep the first heading line the same colour as the heading */
+.hero h1 span.plain,
+.hero.has-image h1 span.plain,
+.advisor-intro h2 span.plain {
+
+    color: inherit;
+
+}
+
+.analysis-steps em {
+
+    font-style: normal;
+
+}
+
+/* Indian scripts need more line height and no negative letter-spacing */
+html:not([lang="en"]) h1,
+html:not([lang="en"]) h2,
+html:not([lang="en"]) h3 {
+
+    letter-spacing: 0;
+    line-height: 1.35;
+
+}
+
+html:not([lang="en"]) .hero h1 {
+
+    font-size: clamp(36px, 6vw, 68px);
+
+}
+
+html:not([lang="en"]) .eyebrow {
+
+    letter-spacing: 0;
+
+}
+
+@media (max-width: 600px) {
+
+    .nav-actions {
+        gap: 8px;
+    }
+
+    .lang-switch {
+        height: 38px;
+        padding: 0 6px;
+    }
+
+    .lang-switch select {
+        max-width: 78px;
+        font-size: 13px;
+    }
+
+    .nav-cta {
+        padding: 9px 12px;
+    }
+
+    html:not([lang="en"]) .hero h1 {
+        letter-spacing: 0;
+    }
+
+}
+
+/* keep the header on one line on small phones (hero already has an "Ask" button) */
+.logo,
+.nav-cta {
+
+    white-space: nowrap;
+
+}
+
+@media (max-width: 520px) {
+
+    .nav-cta {
+        display: none;
+    }
+
+    .logo {
+        font-size: 19px;
     }
 
 }

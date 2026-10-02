@@ -1,583 +1,354 @@
-const form =
-    document.getElementById("farmForm");
+"use strict";
 
-const cropInput =
-    document.getElementById("crop");
+/* =========================================
+   SmartFarm AI - frontend
+   (translations live in i18n.js)
+========================================= */
 
-const questionInput =
-    document.getElementById("question");
+const $ = id => document.getElementById(id);
 
-const hero =
-    document.querySelector(".hero");
+const form = $("farmForm");
+const cropInput = $("crop");
+const questionInput = $("question");
+const hero = document.querySelector(".hero");
+const cropPreviewIcon = document.querySelector(".crop-preview-icon");
+const loadingPanel = $("loadingPanel");
+const result = $("result");
+const aiResponse = $("aiResponse");
+const submitBtn = $("submitBtn");
+const langSelect = $("langSelect");
 
-const selectedCrop =
-    document.getElementById("selectedCrop");
+const STORE = { lang: "smartFarmLang", history: "smartFarmHistory" };
+const HISTORY_LIMIT = 6;
 
-const cropPreviewIcon =
-    document.querySelector(
-        ".crop-preview-icon"
-    );
-
-const imageAttribution =
-    document.getElementById(
-        "imageAttribution"
-    );
-
-const loadingPanel =
-    document.getElementById(
-        "loadingPanel"
-    );
-
-const result =
-    document.getElementById("result");
-
-const aiResponse =
-    document.getElementById(
-        "aiResponse"
-    );
-
-const submitBtn =
-    document.getElementById(
-        "submitBtn"
-    );
-
-const toast =
-    document.getElementById("toast");
-
-
+let lang = "en";        // current interface language
+let adviceLang = "en";  // language the advice on screen was written in (used for voice)
+let busy = false;
+let lastInsights = null;
 let cropImageTimer = null;
+let imageRequest = null;
 
 
 /* =========================================
-   CROP THEME
+   HELPERS
 ========================================= */
 
-const cropThemes = {
+const escapeHtml = value =>
+    String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
 
-    tomato: {
-        primary: "#c62828",
-        dark: "#8e1d1d",
-        light: "#fff0f0",
-        accent: "#ef5350",
-        emoji: "🍅"
-    },
+function t(key, vars) {
 
-    wheat: {
-        primary: "#b87900",
-        dark: "#805200",
-        light: "#fff8df",
-        accent: "#f1bf42",
-        emoji: "🌾"
-    },
+    let text = I18N[lang]?.[key] ?? I18N.en[key] ?? key;
 
-    maize: {
-        primary: "#c28b00",
-        dark: "#8a6200",
-        light: "#fff8dd",
-        accent: "#ffd34e",
-        emoji: "🌽"
-    },
-
-    corn: {
-        primary: "#c28b00",
-        dark: "#8a6200",
-        light: "#fff8dd",
-        accent: "#ffd34e",
-        emoji: "🌽"
-    },
-
-    onion: {
-        primary: "#7e3f98",
-        dark: "#59266d",
-        light: "#f8effc",
-        accent: "#bb7ed6",
-        emoji: "🧅"
-    },
-
-    potato: {
-        primary: "#8b5a2b",
-        dark: "#5e3a1a",
-        light: "#faf1e8",
-        accent: "#c58a55",
-        emoji: "🥔"
-    },
-
-    sugarcane: {
-        primary: "#27834a",
-        dark: "#155d31",
-        light: "#e9f8ed",
-        accent: "#7acb78",
-        emoji: "🌱"
-    },
-
-    cotton: {
-        primary: "#4d8a83",
-        dark: "#2d5d58",
-        light: "#edf8f7",
-        accent: "#94cfc6",
-        emoji: "☁️"
-    },
-
-    grape: {
-        primary: "#6c3c85",
-        dark: "#452458",
-        light: "#f5eef9",
-        accent: "#a975c3",
-        emoji: "🍇"
-    },
-
-    grapes: {
-        primary: "#6c3c85",
-        dark: "#452458",
-        light: "#f5eef9",
-        accent: "#a975c3",
-        emoji: "🍇"
-    },
-
-    rice: {
-        primary: "#4d8b31",
-        dark: "#2f5f1b",
-        light: "#eef8e9",
-        accent: "#9acb69",
-        emoji: "🌾"
-    },
-
-    soybean: {
-        primary: "#6b7d32",
-        dark: "#4b5920",
-        light: "#f4f8e8",
-        accent: "#a5b86b",
-        emoji: "🫘"
+    for (const name in vars || {}) {
+        text = text.replaceAll(`{${name}}`, vars[name]);
     }
 
+    return text;
+}
+
+let toastTimer;
+
+function showToast(message) {
+
+    const toast = $("toast");
+
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+const readJson = (key, fallback) => {
+    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+    catch { return fallback; }
 };
 
 
-function getCropTheme(crop) {
+/* =========================================
+   CROPS
+   icon | english | hi | mr | gu | ta | te | extra search words
+   (used for the crop icon, the Unsplash image and
+   for writing quick questions in the user's language)
+========================================= */
 
-    const text =
-        crop.toLowerCase().trim();
+const CROPS = `
+🍅|tomato|टमाटर|टोमॅटो|ટામેટા|தக்காளி|టమాటా|टोमाटो|టమోటా
+🌾|wheat|गेहूं|गहू|ઘઉં|கோதுமை|గోధుమ|गेहूँ
+🌽|maize|मक्का|मका|મકાઈ|மக்காச்சோளம்|మొక్కజొన్న|corn
+🧅|onion|प्याज|कांदा|ડુંગળી|வெங்காயம்|ఉల్లిపాయ
+🥔|potato|आलू|बटाटा|બટાકા|உருளைக்கிழங்கு|బంగాళాదుంప
+🌱|sugarcane|गन्ना|ऊस|શેરડી|கரும்பு|చెరకు
+☁️|cotton|कपास|कापूस|કપાસ|பருத்தி|పత్తి
+🍇|grape|अंगूर|द्राक्ष|દ્રાક્ષ|திராட்சை|ద్రాక్ష
+🌾|rice|धान|भात|ડાંગર|நெல்|వరి|चावल|तांदूळ|ચોખા|அரிசி|బియ్యం|paddy
+🫘|soybean|सोयाबीन|सोयाबीन|સોયાબીન|சோயாபீன்ஸ்|సోయాబీన్
+🍌|banana|केला|केळी|કેળા|வாழை|అరటి
+🥭|mango|आम|आंबा|કેરી|மாம்பழம்|మామిడి
+🍎|apple|सेब|सफरचंद|સફરજન|ஆப்பிள்|ఆపిల్
+🍊|orange|संतरा|संत्रे|નારંગી|ஆரஞ்சு|నారింజ|संत्रा
+🍋|lemon|नींबू|लिंबू|લીંબુ|எலுமிச்சை|నిమ్మ
+🍉|watermelon|तरबूज|कलिंगड|તડબૂચ|தர்பூசணி|పుచ్చకాయ
+🥭|papaya|पपीता|पपई|પપૈયા|பப்பாளி|బొప్పాయి
+🌶️|chilli|मिर्च|मिरची|મરચાં|மிளகாய்|మిరప|chili
+🍆|brinjal|बैंगन|वांगी|રીંગણ|கத்தரிக்காய்|వంకాయ|eggplant
+🥕|carrot|गाजर|गाजर|ગાજર|கேரட்|క్యారెట్
+🥬|cabbage|पत्ता गोभी|कोबी|કોબી|முட்டைக்கோஸ்|క్యాబేజీ
+🥬|spinach|पालक|पालक|પાલક|பசலைக்கீரை|పాలకూర
+🥜|groundnut|मूंगफली|भुईमूग|મગફળી|நிலக்கடலை|వేరుశనగ|peanut|शेंगदाणा
+🫛|peas|मटर|वाटाणा|વટાણા|பட்டாணி|బఠాణీ|pea
+🫘|gram|चना|हरभरा|ચણા|கொண்டைக்கடலை|శనగ|chickpea
+🫘|lentil|मसूर|मसूर|મસૂર
+🫘|beans|सेम|घेवडा|||| bean
+🍃|tea|चाय|चहा||தேயிலை|తేయాకు
+☕|coffee|कॉफी|कॉफी|કૉફી|காபி|కాఫీ
+🥥|coconut|नारियल|नारळ|નાળિયેર|தேங்காய்|కొబ్బరి
+🌿|turmeric|हल्दी|हळद|હળદર|மஞ்சள்|పసుపు
+🫚|ginger|अदरक|आले|આદુ|இஞ்சி|అల్లం
+🧄|garlic|लहसुन|लसूण|લસણ|பூண்டு|వెల్లుల్లి
+`.trim().split("\n").map(row => {
 
-    for (
-        const key in cropThemes
-    ) {
-
-        if (
-            text.includes(key)
-        ) {
-
-            return cropThemes[key];
-
-        }
-
-    }
+    const [icon, en, hi, mr, gu, ta, te, ...extra] = row.split("|").map(s => s.trim());
 
     return {
-
-        primary: "#2e7d32",
-
-        dark: "#176b2b",
-
-        light: "#e8f5e9",
-
-        accent: "#8bc34a",
-
-        emoji: "🌱"
-
+        icon,
+        en,
+        names: { en, hi, mr, gu, ta, te },
+        keys: [en, hi, mr, gu, ta, te, ...extra].filter(Boolean).map(s => s.toLowerCase())
     };
+});
 
-}
+function findCrop(text) {
 
+    const value = String(text || "").toLowerCase().trim();
 
-function applyCropTheme(crop) {
+    if (!value) return null;
 
-    const theme =
-        getCropTheme(crop);
+    const tokens = value.split(/[\s,.;:/()\-]+/);
 
-    const root =
-        document.documentElement;
-
-    root.style.setProperty(
-        "--primary",
-        theme.primary
-    );
-
-    root.style.setProperty(
-        "--primary-dark",
-        theme.dark
-    );
-
-    root.style.setProperty(
-        "--primary-light",
-        theme.light
-    );
-
-    root.style.setProperty(
-        "--accent",
-        theme.accent
-    );
-
-    cropPreviewIcon.textContent =
-        theme.emoji;
-
-}
-
-
-const cropQuestionTemplates = {
-
-    tomato: [
-        "Why are my tomato leaves curling?",
-        "How can I prevent tomato diseases?",
-        "Why are my tomato fruits cracking?",
-        "How can I improve tomato yield?"
-    ],
-
-    sugarcane: [
-        "Why are my sugarcane leaves turning yellow?",
-        "What causes black spots on sugarcane?",
-        "How can I improve sugarcane yield?",
-        "How much irrigation does sugarcane need?"
-    ],
-
-    wheat: [
-        "Why are my wheat leaves turning yellow?",
-        "How can I improve wheat yield?",
-        "How can I prevent wheat diseases?",
-        "What irrigation is needed for wheat?"
-    ],
-
-    default: [
-        "Why are my leaves turning yellow?",
-        "How much water does my crop need?",
-        "How can I improve crop yield?",
-        "How can I prevent crop diseases?"
-    ]
-
-};
-
-
-function updateQuickQuestions(crop) {
-
-    const container =
-        document.getElementById(
-            "quickQuestions"
-        );
-
-    const cropName =
-        crop.toLowerCase().trim();
-
-    let questions =
-        cropQuestionTemplates.default;
-
-    for (
-        const key in cropQuestionTemplates
-    ) {
-
-        if (
-            cropName.includes(key)
-        ) {
-
-            questions =
-                cropQuestionTemplates[key];
-
-            break;
-
-        }
-
-    }
-
-    container.innerHTML =
-        questions.map(
-            question => `
-                <button
-                    type="button"
-                    class="quick-question"
-                >
-                    ${question}
-                </button>
-            `
-        ).join("");
-
-}
-
-
-function loadCropImage(crop) {
-
-    if (
-        !crop ||
-        crop.length < 2
-    ) {
-
-        return;
-
-    }
-
-
-    fetch(
-        `/api/crop-image?crop=${encodeURIComponent(crop)}`
-    )
-
-        .then(
-            response => response.json()
+    return CROPS.find(crop =>
+        crop.keys.some(key =>
+            key.includes(" ")
+                ? value.includes(key)
+                : tokens.some(token => key.length >= 3 ? token.startsWith(key) : token === key)
         )
-
-        .then(
-            data => {
-
-                if (!data.image) {
-
-                    return;
-
-                }
-
-
-                hero.style.backgroundImage =
-                    `url("${data.image}")`;
-
-                hero.classList.add(
-                    "has-image"
-                );
-
-
-                if (
-                    data.photographer &&
-                    data.profile &&
-                    data.unsplash
-                ) {
-
-                    imageAttribution.innerHTML =
-
-                        `Photo by ` +
-
-                        `<a href="${data.profile}" ` +
-                        `target="_blank" ` +
-                        `rel="noopener noreferrer">` +
-
-                        `${data.photographer}` +
-
-                        `</a> on ` +
-
-                        `<a href="${data.unsplash}" ` +
-                        `target="_blank" ` +
-                        `rel="noopener noreferrer">` +
-
-                        `Unsplash` +
-
-                        `</a>`;
-
-                }
-
-            }
-
-        )
-
-        .catch(
-            error => {
-
-                console.log(
-                    "Image loading error:",
-                    error
-                );
-
-            }
-        );
-
+    ) || null;
 }
+
+const getCropIcon = crop => findCrop(crop)?.icon || "🌱";
 
 
 /* =========================================
-   CROP INPUT EVENT
+   LANGUAGE
 ========================================= */
 
-cropInput.addEventListener(
-    "input",
-    function () {
+function applyLanguage(code) {
 
-        const crop =
-            this.value.trim();
+    lang = LANGUAGES[code] ? code : "en";
 
-        selectedCrop.textContent =
-            crop
-                ? crop
-                : "Your crop will appear here";
+    localStorage.setItem(STORE.lang, lang);
 
+    document.documentElement.lang = lang;
+    document.title = t("title");
+    langSelect.value = lang;
 
-        applyCropTheme(crop);
+    document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
 
-        updateQuickQuestions(crop);
+    renderSubmitButton();
+    renderSelectedCrop();
+    renderQuickQuestions();
+    renderInsights();
+    renderHistory();
+}
 
+function detectLanguage() {
 
-        clearTimeout(
-            cropImageTimer
-        );
+    const saved = localStorage.getItem(STORE.lang);
 
+    if (LANGUAGES[saved]) return saved;
 
-        if (
-            crop.length >= 3
-        ) {
-
-            cropImageTimer =
-                setTimeout(
-                    function () {
-
-                        loadCropImage(crop);
-
-                    },
-                    700
-                );
-
-        }
-
+    for (const code of navigator.languages || [navigator.language]) {
+        const short = String(code).slice(0, 2).toLowerCase();
+        if (LANGUAGES[short]) return short;
     }
-);
+
+    return "en";
+}
+
+langSelect.innerHTML = Object.entries(LANGUAGES)
+    .map(([code, info]) => `<option value="${code}">${info.native}</option>`)
+    .join("");
+
+langSelect.addEventListener("change", () => {
+    window.speechSynthesis?.cancel();
+    applyLanguage(langSelect.value);
+});
 
 
 /* =========================================
-   QUICK QUESTION BUTTONS
+   CROP PREVIEW, QUICK QUESTIONS, IMAGE
 ========================================= */
 
-document.addEventListener(
-    "click",
-    function (event) {
+function renderSelectedCrop() {
 
-        if (
-            event.target.classList.contains(
-                "quick-question"
-            )
-        ) {
+    const crop = cropInput.value.trim();
 
-            questionInput.value =
-                event.target.textContent.trim();
+    $("selectedCrop").textContent = crop || t("cropHint");
+    cropPreviewIcon.textContent = getCropIcon(crop);
+}
 
-            questionInput.focus();
+function renderQuickQuestions() {
 
+    const crop = cropInput.value.trim();
+    const localName = crop ? (findCrop(crop)?.names[lang] || crop) : "";
+    const prefix = crop ? "q" : "qg";
+
+    $("quickQuestions").innerHTML = [1, 2, 3, 4]
+        .map(n => `<button type="button" class="quick-question">${escapeHtml(t(prefix + n, { crop: localName }))}</button>`)
+        .join("");
+}
+
+async function loadCropImage(crop) {
+
+    imageRequest?.abort();
+    imageRequest = new AbortController();
+
+    const name = findCrop(crop)?.en || crop; // English name gives better photo results
+
+    try {
+
+        const response = await fetch(`/api/crop-image?crop=${encodeURIComponent(name)}`, { signal: imageRequest.signal });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        if (!data.image) return;
+
+        hero.style.backgroundImage = `url("${data.image}")`;
+        hero.classList.add("has-image");
+
+        if (data.photographer && data.profile && data.unsplash) {
+
+            const link = (href, label) =>
+                `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
+
+            $("imageAttribution").innerHTML =
+                `Photo by ${link(data.profile, data.photographer)} on ${link(data.unsplash, "Unsplash")}`;
         }
 
+    } catch (error) {
+        if (error.name !== "AbortError") console.log("Image loading error:", error);
     }
-);
+}
+
+cropInput.addEventListener("input", () => {
+
+    const crop = cropInput.value.trim();
+
+    renderSelectedCrop();
+    renderQuickQuestions();
+
+    clearTimeout(cropImageTimer);
+
+    if (crop.length >= 3) {
+        cropImageTimer = setTimeout(() => loadCropImage(crop), 700);
+    }
+});
+
+$("quickQuestions").addEventListener("click", event => {
+
+    const button = event.target.closest(".quick-question");
+
+    if (!button) return;
+
+    questionInput.value = button.textContent.trim();
+    questionInput.focus();
+});
 
 
 /* =========================================
-   SIMPLE MARKDOWN TO HTML
+   ADVICE FORMATTING (safe markdown -> HTML)
 ========================================= */
 
 function formatAdvice(text) {
 
-    let advice =
-        String(text || "");
-
-    advice =
-        advice
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-
-
-    advice =
-        advice.replace(
-            /^\*\*(.*?)\*\*$/gm,
-            "<h3>$1</h3>"
-        );
-
-
-    advice =
-        advice.replace(
-            /\*\*(.*?)\*\*/g,
-            "<strong>$1</strong>"
-        );
-
-
-    advice =
-        advice.replace(
-            /\*(.*?)\*/g,
-            "<em>$1</em>"
-        );
-
-
-    const lines =
-        advice.split("\n");
+    const inline = value =>
+        escapeHtml(value)
+            .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+            .replace(/\*(?!\s)([^*]+?)\*/g, "<em>$1</em>");
 
     let html = "";
     let inList = false;
 
+    const closeList = () => {
+        if (inList) { html += "</ul>"; inList = false; }
+    };
 
-    for (let line of lines) {
+    for (const raw of String(text || "").split("\n")) {
 
-        const bullet =
-            line.match(
-                /^\s*[-*]\s+(.*)$/
-            );
+        const line = raw.trim();
 
-        const numbered =
-            line.match(
-                /^\s*\d+\.\s+(.*)$/
-            );
+        if (!line) { closeList(); continue; }
 
+        const heading = line.match(/^#{1,6}\s+(.+)$/) || line.match(/^\*\*([^*]+?)\*\*:?$/);
+        const item = line.match(/^(?:[-*•]|\d+[.)])\s+(.*)$/);
 
-        if (
-            bullet ||
-            numbered
-        ) {
-
-            if (!inList) {
-
-                html += "<ul>";
-
-                inList = true;
-
-            }
-
-            html +=
-                `<li>${(bullet || numbered)[1]}</li>`;
-
+        if (heading) {
+            closeList();
+            html += `<h3>${inline(heading[1].replace(/\*\*/g, ""))}</h3>`;
+        } else if (item) {
+            if (!inList) { html += "<ul>"; inList = true; }
+            html += `<li>${inline(item[1])}</li>`;
+        } else {
+            closeList();
+            html += `<p>${inline(line)}</p>`;
         }
-
-        else {
-
-            if (inList) {
-
-                html += "</ul>";
-
-                inList = false;
-
-            }
-
-
-            if (
-                line.trim()
-            ) {
-
-                if (
-                    line.startsWith("<h3>")
-                ) {
-
-                    html += line;
-
-                }
-
-                else {
-
-                    html +=
-                        `<p>${line}</p>`;
-
-                }
-
-            }
-
-        }
-
     }
 
-
-    if (inList) {
-
-        html += "</ul>";
-
-    }
-
+    closeList();
 
     return html;
+}
 
+
+/* =========================================
+   RESULT PANEL
+========================================= */
+
+function renderSubmitButton() {
+
+    submitBtn.innerHTML = busy
+        ? `<span>🌱 ${t("submitBusy")}</span><span>⌛</span>`
+        : `<span>🤖 ${t("submit")}</span><span>→</span>`;
+}
+
+function renderInsights() {
+
+    if (!lastInsights) return;
+
+    const { crop, soil, season, location } = lastInsights;
+
+    $("insightCropIcon").textContent = getCropIcon(crop);
+    $("insightCrop").textContent = crop || "-";
+    $("insightSoil").textContent = soil ? t("soil" + soil) : "-";
+    $("insightSeason").textContent = season ? t("season" + season) : "-";
+    $("insightLocation").textContent = location || "-";
+}
+
+function showAdvice(item) {
+
+    adviceLang = item.lang || "en";
+    lastInsights = { crop: item.crop, soil: item.soil, season: item.season, location: item.location };
+
+    aiResponse.innerHTML = formatAdvice(item.advice);
+    renderInsights();
+
+    loadingPanel.classList.remove("show");
+    result.classList.add("show");
+    result.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 
@@ -585,677 +356,243 @@ function formatAdvice(text) {
    FORM SUBMISSION
 ========================================= */
 
-form.addEventListener(
-    "submit",
-    async function (event) {
-
-        event.preventDefault();
-
-
-        const farmerName =
-            document
-                .getElementById("farmerName")
-                .value.trim();
-
-        const location =
-            document
-                .getElementById("location")
-                .value.trim();
-
-        const crop =
-            cropInput.value.trim();
-
-        const soil =
-            document
-                .getElementById("soil")
-                .value;
-
-        const season =
-            document
-                .getElementById("season")
-                .value;
-
-        const question =
-            questionInput.value.trim();
-
-
-        result.classList.remove(
-            "show"
-        );
-
-        loadingPanel.classList.add(
-            "show"
-        );
-
-
-        submitBtn.disabled = true;
-
-        submitBtn.innerHTML =
-            "<span>🌱 Analysing...</span><span>⌛</span>";
-
-
-        try {
-
-            const response =
-                await fetch(
-                    "/api/advice",
-                    {
-
-                        method: "POST",
-
-                        headers: {
-
-                            "Content-Type":
-                                "application/json"
-
-                        },
-
-                        body:
-                            JSON.stringify({
-
-                                farmerName,
-
-                                location,
-
-                                crop,
-
-                                soil,
-
-                                season,
-
-                                question
-
-                            })
-
-                    }
-                );
-
-
-            const data =
-                await response.json();
-
-
-            if (!response.ok) {
-
-                throw new Error(
-                    data.error ||
-                    "AI service error"
-                );
-
-            }
-
-
-            aiResponse.innerHTML =
-                formatAdvice(
-                    data.advice
-                );
-
-
-            /* UPDATE INSIGHTS */
-
-            document
-                .getElementById(
-                    "insightCrop"
-                )
-                .textContent =
-                    crop || "-";
-
-
-            document
-                .getElementById(
-                    "insightSoil"
-                )
-                .textContent =
-                    soil || "-";
-
-
-            document
-                .getElementById(
-                    "insightSeason"
-                )
-                .textContent =
-                    season || "-";
-
-
-            document
-                .getElementById(
-                    "insightLocation"
-                )
-                .textContent =
-                    location || "-";
-
-
-            loadingPanel.classList.remove(
-                "show"
-            );
-
-            result.classList.add(
-                "show"
-            );
-
-
-            saveToHistory({
-
-                crop,
-
-                question,
-
-                advice: data.advice,
-
-                date:
-                    new Date().toLocaleString()
-
-            });
-
-
-            result.scrollIntoView({
-
-                behavior: "smooth",
-
-                block: "start"
-
-            });
-
-
-            showToast(
-                "🌱 SmartFarm AI advice is ready!"
-            );
-
-        }
-
-        catch (error) {
-
-            loadingPanel.classList.remove(
-                "show"
-            );
-
-
-            showToast(
-                "❌ " + error.message
-            );
-
-
-            console.error(error);
-
-        }
-
-        finally {
-
-            submitBtn.disabled = false;
-
-            submitBtn.innerHTML =
-                "<span>🤖 Get AI Advice</span><span>→</span>";
-
-        }
-
-    }
-);
-
-
-/* =========================================
-   TEXT TO SPEECH
-========================================= */
-
-function getAdviceText() {
-
-    return aiResponse.innerText.trim();
-
+function setBusy(value) {
+
+    busy = value;
+    submitBtn.disabled = value;
+    renderSubmitButton();
 }
 
+form.addEventListener("submit", async event => {
 
-document
-    .getElementById("speakBtn")
-    .addEventListener(
-        "click",
-        function () {
+    event.preventDefault();
 
-            const text =
-                getAdviceText();
+    const payload = {
+        farmerName: $("farmerName").value.trim(),
+        location: $("location").value.trim(),
+        crop: cropInput.value.trim(),
+        soil: $("soil").value,
+        season: $("season").value,
+        question: questionInput.value.trim(),
+        language: lang
+    };
 
-            if (!text) {
+    result.classList.remove("show");
+    loadingPanel.classList.add("show");
+    setBusy(true);
 
-                showToast(
-                    "Please get AI advice first."
-                );
+    try {
 
-                return;
+        const response = await fetch("/api/advice", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            signal: AbortSignal.timeout(70000)
+        });
 
-            }
+        const data = await response.json().catch(() => ({}));
 
+        if (!response.ok) throw new Error(data.error || t("tError"));
 
-            window.speechSynthesis.cancel();
+        const item = {
+            crop: payload.crop,
+            soil: payload.soil,
+            season: payload.season,
+            location: payload.location,
+            question: payload.question,
+            advice: data.advice,
+            lang,
+            ts: Date.now()
+        };
 
+        showAdvice(item);
+        saveToHistory(item);
+        showToast("🌱 " + t("tReady"));
 
-            const speech =
-                new SpeechSynthesisUtterance(
-                    text
-                );
+    } catch (error) {
 
-            speech.lang = "en-IN";
+        loadingPanel.classList.remove("show");
+        showToast("❌ " + (error.name === "TimeoutError" ? t("tError") : error.message));
+        console.error(error);
 
-            speech.rate = 0.9;
-
-            speech.pitch = 1;
-
-
-            window.speechSynthesis.speak(
-                speech
-            );
-
-        }
-    );
-
-
-document
-    .getElementById("pauseBtn")
-    .addEventListener(
-        "click",
-        function () {
-
-            window.speechSynthesis.pause();
-
-        }
-    );
-
-
-document
-    .getElementById("resumeBtn")
-    .addEventListener(
-        "click",
-        function () {
-
-            window.speechSynthesis.resume();
-
-        }
-    );
-
-
-document
-    .getElementById("stopBtn")
-    .addEventListener(
-        "click",
-        function () {
-
-            window.speechSynthesis.cancel();
-
-        }
-    );
+    } finally {
+        setBusy(false);
+    }
+});
 
 
 /* =========================================
-   COPY ADVICE
+   TEXT TO SPEECH (reads in the advice's language)
 ========================================= */
 
-document
-    .getElementById("copyBtn")
-    .addEventListener(
-        "click",
-        async function () {
+const adviceText = () => aiResponse.innerText.trim();
 
-            const text =
-                getAdviceText();
+/* Long utterances stop early in Chrome, so speak in short chunks */
+function splitForSpeech(text, max = 180) {
 
-            if (!text) {
+    const sentences = text.match(/[^.!?।\n]+[.!?।]?/g) || [text];
+    const chunks = [];
+    let current = "";
 
-                showToast(
-                    "No advice to copy."
-                );
+    for (const sentence of sentences) {
 
-                return;
-
-            }
-
-
-            try {
-
-                await navigator.clipboard.writeText(
-                    text
-                );
-
-                showToast(
-                    "📋 Advice copied!"
-                );
-
-            }
-
-            catch {
-
-                showToast(
-                    "Unable to copy advice."
-                );
-
-            }
-
+        if (current && (current + sentence).length > max) {
+            chunks.push(current.trim());
+            current = "";
         }
-    );
+
+        current += sentence + " ";
+    }
+
+    if (current.trim()) chunks.push(current.trim());
+
+    return chunks;
+}
+
+$("speakBtn").addEventListener("click", () => {
+
+    const text = adviceText();
+
+    if (!text) return showToast(t("tNeedAdvice"));
+
+    if (!("speechSynthesis" in window)) return showToast(t("tNoVoice"));
+
+    const speechLang = LANGUAGES[adviceLang].speech;
+    const voices = speechSynthesis.getVoices();
+    const voice = voices.find(v => v.lang.replace("_", "-").toLowerCase().startsWith(adviceLang));
+
+    if (voices.length && !voice) return showToast(t("tNoVoice"));
+
+    speechSynthesis.cancel();
+
+    for (const chunk of splitForSpeech(text)) {
+
+        const speech = new SpeechSynthesisUtterance(chunk);
+
+        speech.lang = speechLang;
+        speech.rate = 0.9;
+
+        if (voice) speech.voice = voice;
+
+        speechSynthesis.speak(speech);
+    }
+});
+
+$("pauseBtn").addEventListener("click", () => window.speechSynthesis?.pause());
+$("resumeBtn").addEventListener("click", () => window.speechSynthesis?.resume());
+$("stopBtn").addEventListener("click", () => window.speechSynthesis?.cancel());
 
 
 /* =========================================
-   DOWNLOAD ADVICE
+   COPY & DOWNLOAD
 ========================================= */
 
-document
-    .getElementById("downloadBtn")
-    .addEventListener(
-        "click",
-        function () {
+$("copyBtn").addEventListener("click", async () => {
 
-            const text =
-                getAdviceText();
+    const text = adviceText();
 
-            if (!text) {
+    if (!text) return showToast(t("tNoCopy"));
 
-                showToast(
-                    "No advice to download."
-                );
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast("📋 " + t("tCopied"));
+    } catch {
+        showToast(t("tCopyFail"));
+    }
+});
 
-                return;
+$("downloadBtn").addEventListener("click", () => {
 
-            }
+    const text = adviceText();
 
+    if (!text) return showToast(t("tNoDownload"));
 
-            const crop =
-                cropInput.value.trim() ||
-                "crop";
+    const crop = lastInsights?.crop || cropInput.value.trim() || "crop";
+    const location = lastInsights?.location || "";
 
+    const content = `${t("dlTitle")}\n\n${t("iCrop")}: ${crop}\n${t("iLoc")}: ${location}\n\n${text}`;
 
-            const content =
+    const url = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));
+    const link = document.createElement("a");
 
-                "SMARTFARM AI ADVICE\n\n" +
+    link.href = url;
+    link.download = `SmartFarm-${crop.replace(/[\\/:*?"<>|\s]+/g, "-")}-Advice.txt`;
 
-                `Crop: ${crop}\n` +
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
 
-                `Location: ${
-                    document
-                        .getElementById("location")
-                        .value
-                }\n\n` +
-
-                text;
-
-
-            const blob =
-                new Blob(
-                    [content],
-                    {
-                        type:
-                            "text/plain"
-                    }
-                );
-
-
-            const url =
-                URL.createObjectURL(blob);
-
-
-            const link =
-                document.createElement("a");
-
-
-            link.href = url;
-
-            link.download =
-                `SmartFarm-${crop}-Advice.txt`;
-
-
-            link.click();
-
-
-            URL.revokeObjectURL(url);
-
-
-            showToast(
-                "📄 Advice downloaded!"
-            );
-
-        }
-    );
+    showToast("📄 " + t("tDownloaded"));
+});
 
 
 /* =========================================
    HISTORY
 ========================================= */
 
-function getHistory() {
-
-    try {
-
-        return JSON.parse(
-
-            localStorage.getItem(
-                "smartFarmHistory"
-            )
-
-        ) || [];
-
-    }
-
-    catch {
-
-        return [];
-
-    }
-
-}
-
+const getHistory = () => readJson(STORE.history, []);
 
 function saveToHistory(item) {
 
-    const history =
-        getHistory();
-
-
-    history.unshift(item);
-
-
-    const limitedHistory =
-        history.slice(0, 6);
-
-
-    localStorage.setItem(
-
-        "smartFarmHistory",
-
-        JSON.stringify(
-            limitedHistory
-        )
-
-    );
-
+    try {
+        localStorage.setItem(STORE.history, JSON.stringify([item, ...getHistory()].slice(0, HISTORY_LIMIT)));
+    } catch (error) {
+        console.warn("Could not save history:", error);
+    }
 
     renderHistory();
-
 }
-
 
 function renderHistory() {
 
-    const history =
-        getHistory();
+    const history = getHistory();
+    const container = $("historyList");
 
-
-    const container =
-        document.getElementById(
-            "historyList"
-        );
-
-
-    if (
-        history.length === 0
-    ) {
-
-        container.innerHTML = `
-
-            <div class="empty-history">
-
-                🌱
-
-                <p>
-                    No farming questions yet.
-                </p>
-
-            </div>
-
-        `;
-
+    if (!history.length) {
+        container.innerHTML = `<div class="empty-history">🌱<p>${escapeHtml(t("histEmpty"))}</p></div>`;
         return;
-
     }
 
+    const locale = LANGUAGES[lang].speech;
 
-    container.innerHTML =
-        history.map(
-            (item, index) => `
+    container.innerHTML = history.map((item, index) => {
 
-                <div class="history-item">
+        // older saved items used a ready-made date string
+        const date = item.ts ? new Date(item.ts).toLocaleString(locale) : item.date;
 
-                    <div>
-
-                        <h3>
-                            🌱 ${escapeHtml(item.crop)}
-                        </h3>
-
-                        <p>
-                            ${escapeHtml(item.question)}
-                        </p>
-
-                        <p>
-                            ${escapeHtml(item.date)}
-                        </p>
-
-                    </div>
-
-                    <button
-                        type="button"
-                        data-history="${index}"
-                    >
-                        View Advice
-                    </button>
-
+        return `
+            <div class="history-item">
+                <div>
+                    <h3>${getCropIcon(item.crop)} ${escapeHtml(item.crop)}</h3>
+                    <p>${escapeHtml(item.question)}</p>
+                    <p>${escapeHtml(date)}</p>
                 </div>
-
-            `
-        ).join("");
-
+                <button type="button" data-history="${index}">${escapeHtml(t("viewAdvice"))}</button>
+            </div>`;
+    }).join("");
 }
 
+$("historyList").addEventListener("click", event => {
 
-document.addEventListener(
-    "click",
-    function (event) {
+    const button = event.target.closest("[data-history]");
+    const item = button && getHistory()[button.dataset.history];
 
-        const index =
-            event.target.dataset.history;
+    if (item) showAdvice(item);
+});
 
+$("clearHistory").addEventListener("click", () => {
 
-        if (
-            index === undefined
-        ) {
-
-            return;
-
-        }
-
-
-        const history =
-            getHistory();
-
-        const item =
-            history[index];
-
-
-        if (!item) {
-
-            return;
-
-        }
-
-
-        aiResponse.innerHTML =
-            formatAdvice(
-                item.advice
-            );
-
-
-        result.classList.add(
-            "show"
-        );
-
-
-        result.scrollIntoView({
-
-            behavior: "smooth",
-
-            block: "start"
-
-        });
-
-    }
-);
-
-
-document
-    .getElementById("clearHistory")
-    .addEventListener(
-        "click",
-        function () {
-
-            localStorage.removeItem(
-                "smartFarmHistory"
-            );
-
-            renderHistory();
-
-            showToast(
-                "History cleared."
-            );
-
-        }
-    );
-
-
-function escapeHtml(value) {
-
-    return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
-
-
-/* =========================================
-   TOAST
-========================================= */
-
-function showToast(message) {
-
-    toast.textContent =
-        message;
-
-    toast.classList.add(
-        "show"
-    );
-
-
-    setTimeout(
-        function () {
-
-            toast.classList.remove(
-                "show"
-            );
-
-        },
-        3000
-    );
-
-}
+    localStorage.removeItem(STORE.history);
+    renderHistory();
+    showToast(t("tCleared"));
+});
 
 
 /* =========================================
    INITIALIZE
 ========================================= */
 
-renderHistory();
+window.speechSynthesis?.getVoices(); // warm up the voice list
+
+applyLanguage(detectLanguage());

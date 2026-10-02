@@ -2,25 +2,19 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartFarm AI | Smart Agriculture</title>
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <!-- Indian-script fonts (falls back to system fonts if offline) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;800&family=Noto+Sans+Gujarati:wght@400;600;800&family=Noto+Sans+Tamil:wght@400;600;800&family=Noto+Sans+Telugu:wght@400;600;800&display=swap">
 
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
 
 <!-- NAVBAR -->
 
@@ -31,406 +25,161 @@
         <span>SmartFarm <b>AI</b></span>
     </a>
 
-
     <nav id="navMenu">
-
-        <a href="#home">Home</a>
-
-        <a href="#features">Features</a>
-
-        <a href="#how-it-works">
-            How It Works
-        </a>
-
-        <a href="#history">
-            History
-        </a>
-
+        <a href="#home" data-i18n="navHome">Home</a>
+        <a href="#features" data-i18n="navFeatures">Features</a>
+        <a href="#how-it-works" data-i18n="navHow">How It Works</a>
+        <a href="#history" data-i18n="navHistory">History</a>
     </nav>
 
+    <div class="nav-actions">
 
-    <a
-        href="#form-section"
-        class="nav-cta"
-    >
-        Ask AI →
-    </a>
+        <label class="lang-switch" title="Language / भाषा">
+            <span aria-hidden="true">🌐</span>
+            <select id="langSelect" aria-label="Language"></select>
+        </label>
+
+        <a href="#form-section" class="nav-cta" data-i18n="navAsk">Ask AI →</a>
+
+    </div>
 
 </header>
 
 
-
 <!-- HERO -->
 
-<section
-    id="home"
-    class="hero"
->
+<section id="home" class="hero">
 
     <div class="hero-overlay"></div>
 
-
     <div class="hero-content">
 
-        <div class="hero-badge">
-            ✨ AI Powered Agriculture
-        </div>
-
+        <div class="hero-badge">✨ <span data-i18n="heroBadge">AI Powered Agriculture</span></div>
 
         <h1>
-
-            Smarter Decisions.
-            <span>Healthier Crops.</span>
-
+            <span class="plain" data-i18n="heroT1">Smarter Decisions.</span>
+            <span data-i18n="heroT2">Healthier Crops.</span>
         </h1>
 
-
-        <p>
-
-            Ask SmartFarm AI about crops,
-            soil, irrigation, fertilizers,
-            pests and diseases.
-
-        </p>
-
+        <p data-i18n="heroText">Ask SmartFarm AI about crops, soil, irrigation, fertilizers, pests and diseases.</p>
 
         <div class="hero-actions">
-
-            <a
-                href="#form-section"
-                class="primary-btn"
-            >
-                🤖 Ask SmartFarm AI
-            </a>
-
-
-            <a
-                href="#how-it-works"
-                class="secondary-btn"
-            >
-                Explore Features
-            </a>
-
+            <a href="#form-section" class="primary-btn">🤖 <span data-i18n="heroBtn1">Ask SmartFarm AI</span></a>
+            <a href="#how-it-works" class="secondary-btn" data-i18n="heroBtn2">Explore Features</a>
         </div>
 
-
         <div class="hero-mini-cards">
-
-            <div>
-                🌾
-                <span>Crop Advice</span>
-            </div>
-
-            <div>
-                💧
-                <span>Water Smart</span>
-            </div>
-
-            <div>
-                🐛
-                <span>Disease Care</span>
-            </div>
-
+            <div>🌾 <span data-i18n="mini1">Crop Advice</span></div>
+            <div>💧 <span data-i18n="mini2">Water Smart</span></div>
+            <div>🐛 <span data-i18n="mini3">Disease Care</span></div>
         </div>
 
     </div>
 
-
-    <div
-        id="imageAttribution"
-        class="image-attribution"
-    ></div>
+    <div id="imageAttribution" class="image-attribution"></div>
 
 </section>
-
 
 
 <!-- STATS -->
 
 <section class="stats-section">
 
-    <div class="stat">
-
-        <strong>🤖 AI</strong>
-
-        <span>
-            Smart Farming Guidance
-        </span>
-
-    </div>
-
-
-    <div class="stat">
-
-        <strong>⚡ Instant</strong>
-
-        <span>
-            AI-Powered Answers
-        </span>
-
-    </div>
-
-
-    <div class="stat">
-
-        <strong>🌱 Any Crop</strong>
-
-        <span>
-            Dynamic Crop Experience
-        </span>
-
-    </div>
-
-
-    <div class="stat">
-
-        <strong>🔊 Voice</strong>
-
-        <span>
-            Listen to Advice
-        </span>
-
-    </div>
+    <div class="stat"><strong>🤖 <span data-i18n="stat1t">AI</span></strong><span data-i18n="stat1d">Smart Farming Guidance</span></div>
+    <div class="stat"><strong>⚡ <span data-i18n="stat2t">Instant</span></strong><span data-i18n="stat2d">AI-Powered Answers</span></div>
+    <div class="stat"><strong>🌱 <span data-i18n="stat3t">Any Crop</span></strong><span data-i18n="stat3d">Dynamic Crop Experience</span></div>
+    <div class="stat"><strong>🔊 <span data-i18n="stat4t">Voice</span></strong><span data-i18n="stat4d">Listen to Advice</span></div>
 
 </section>
-
 
 
 <!-- FEATURES -->
 
-<section
-    id="features"
-    class="section"
->
+<section id="features" class="section">
 
     <div class="section-heading">
-
-        <span class="eyebrow">
-            WHAT WE OFFER
-        </span>
-
-        <h2>
-            Everything Your Farm Needs
-        </h2>
-
-        <p>
-            AI-powered support for smarter
-            farming decisions.
-        </p>
-
+        <span class="eyebrow" data-i18n="featEyebrow">WHAT WE OFFER</span>
+        <h2 data-i18n="featTitle">Everything Your Farm Needs</h2>
+        <p data-i18n="featText">AI-powered support for smarter farming decisions.</p>
     </div>
-
 
     <div class="feature-grid">
 
         <article class="feature-card">
-
-            <div class="feature-icon">
-                🌾
-            </div>
-
-            <h3>
-                Crop Recommendation
-            </h3>
-
-            <p>
-                Get crop guidance based on
-                season, soil and location.
-            </p>
-
+            <div class="feature-icon">🌾</div>
+            <h3 data-i18n="f1t">Crop Recommendation</h3>
+            <p data-i18n="f1d">Get crop guidance based on season, soil and location.</p>
         </article>
 
-
         <article class="feature-card">
-
-            <div class="feature-icon">
-                🧪
-            </div>
-
-            <h3>
-                Soil & Nutrients
-            </h3>
-
-            <p>
-                Better soil and nutrient
-                management guidance.
-            </p>
-
+            <div class="feature-icon">🧪</div>
+            <h3 data-i18n="f2t">Soil & Nutrients</h3>
+            <p data-i18n="f2d">Better soil and nutrient management guidance.</p>
         </article>
 
-
         <article class="feature-card">
-
-            <div class="feature-icon">
-                💧
-            </div>
-
-            <h3>
-                Smart Irrigation
-            </h3>
-
-            <p>
-                Get practical water
-                management suggestions.
-            </p>
-
+            <div class="feature-icon">💧</div>
+            <h3 data-i18n="f3t">Smart Irrigation</h3>
+            <p data-i18n="f3d">Get practical water management suggestions.</p>
         </article>
 
-
         <article class="feature-card">
-
-            <div class="feature-icon">
-                🐛
-            </div>
-
-            <h3>
-                Pest & Disease Care
-            </h3>
-
-            <p>
-                Understand possible crop
-                problems and precautions.
-            </p>
-
+            <div class="feature-icon">🐛</div>
+            <h3 data-i18n="f4t">Pest & Disease Care</h3>
+            <p data-i18n="f4d">Understand possible crop problems and precautions.</p>
         </article>
 
-
         <article class="feature-card">
-
-            <div class="feature-icon">
-                🌦️
-            </div>
-
-            <h3>
-                Seasonal Precautions
-            </h3>
-
-            <p>
-                Prepare your farm for
-                changing conditions.
-            </p>
-
+            <div class="feature-icon">🌦️</div>
+            <h3 data-i18n="f5t">Seasonal Precautions</h3>
+            <p data-i18n="f5d">Prepare your farm for changing conditions.</p>
         </article>
 
-
         <article class="feature-card">
-
-            <div class="feature-icon">
-                🍀
-            </div>
-
-            <h3>
-                Sustainable Farming
-            </h3>
-
-            <p>
-                Learn environmentally
-                friendly farming practices.
-            </p>
-
+            <div class="feature-icon">🍀</div>
+            <h3 data-i18n="f6t">Sustainable Farming</h3>
+            <p data-i18n="f6d">Learn environmentally friendly farming practices.</p>
         </article>
 
     </div>
 
 </section>
-
 
 
 <!-- HOW IT WORKS -->
 
-<section
-    id="how-it-works"
-    class="how-section"
->
+<section id="how-it-works" class="how-section">
 
     <div class="section-heading">
-
-        <span class="eyebrow">
-            SIMPLE PROCESS
-        </span>
-
-        <h2>
-            How SmartFarm AI Works
-        </h2>
-
+        <span class="eyebrow" data-i18n="howEyebrow">SIMPLE PROCESS</span>
+        <h2 data-i18n="howTitle">How SmartFarm AI Works</h2>
     </div>
-
 
     <div class="steps">
 
         <div class="step">
-
-            <div class="step-number">
-                01
-            </div>
-
-            <div class="step-icon">
-                📝
-            </div>
-
-            <h3>
-                Enter Farm Details
-            </h3>
-
-            <p>
-                Tell us about your crop,
-                soil, season and location.
-            </p>
-
+            <div class="step-number">01</div>
+            <div class="step-icon">📝</div>
+            <h3 data-i18n="h1t">Enter Farm Details</h3>
+            <p data-i18n="h1d">Tell us about your crop, soil, season and location.</p>
         </div>
 
-
-        <div class="step-arrow">
-            →
-        </div>
-
+        <div class="step-arrow">→</div>
 
         <div class="step">
-
-            <div class="step-number">
-                02
-            </div>
-
-            <div class="step-icon">
-                🤖
-            </div>
-
-            <h3>
-                AI Analyses
-            </h3>
-
-            <p>
-                SmartFarm AI studies your
-                farming question.
-            </p>
-
+            <div class="step-number">02</div>
+            <div class="step-icon">🤖</div>
+            <h3 data-i18n="h2t">AI Analyses</h3>
+            <p data-i18n="h2d">SmartFarm AI studies your farming question.</p>
         </div>
 
-
-        <div class="step-arrow">
-            →
-        </div>
-
+        <div class="step-arrow">→</div>
 
         <div class="step">
-
-            <div class="step-number">
-                03
-            </div>
-
-            <div class="step-icon">
-                🌱
-            </div>
-
-            <h3>
-                Get Smart Advice
-            </h3>
-
-            <p>
-                Read, listen, copy or
-                download your advice.
-            </p>
-
+            <div class="step-number">03</div>
+            <div class="step-icon">🌱</div>
+            <h3 data-i18n="h3t">Get Smart Advice</h3>
+            <p data-i18n="h3d">Read, listen, copy or download your advice.</p>
         </div>
 
     </div>
@@ -438,102 +187,37 @@
 </section>
 
 
-
 <!-- AI ADVISOR -->
 
-<section
-    id="form-section"
-    class="advisor-section"
->
+<section id="form-section" class="advisor-section">
 
     <div class="advisor-container">
-
 
         <!-- LEFT -->
 
         <div class="advisor-intro">
 
-            <span class="eyebrow">
-                SMART FARMING ASSISTANT
-            </span>
+            <span class="eyebrow" data-i18n="advEyebrow">SMART FARMING ASSISTANT</span>
 
             <h2>
-                Ask Your Farm.
-                <span>Ask AI.</span>
+                <span class="plain" data-i18n="advT1">Ask Your Farm.</span>
+                <span data-i18n="advT2">Ask AI.</span>
             </h2>
 
-            <p>
-                Enter your crop details and
-                let SmartFarm AI help you.
-            </p>
+            <p data-i18n="advText">Enter your crop details and let SmartFarm AI help you.</p>
 
-
-            <div
-                id="cropPreview"
-                class="crop-preview"
-            >
-
-                <div class="crop-preview-icon">
-                    🌱
-                </div>
-
+            <div id="cropPreview" class="crop-preview">
+                <div class="crop-preview-icon">🌱</div>
                 <div>
-
-                    <small>
-                        SELECTED CROP
-                    </small>
-
-                    <h3 id="selectedCrop">
-                        Your crop will appear here
-                    </h3>
-
+                    <small data-i18n="selCrop">SELECTED CROP</small>
+                    <h3 id="selectedCrop">Your crop will appear here</h3>
                 </div>
-
             </div>
 
-
             <div class="quick-box">
-
-                <h3>
-                    ⚡ Quick Questions
-                </h3>
-
-                <p>
-                    Click one to use it.
-                </p>
-
-                <div id="quickQuestions">
-
-                    <button
-                        type="button"
-                        class="quick-question"
-                    >
-                        Why are my leaves turning yellow?
-                    </button>
-
-                    <button
-                        type="button"
-                        class="quick-question"
-                    >
-                        How much water does my crop need?
-                    </button>
-
-                    <button
-                        type="button"
-                        class="quick-question"
-                    >
-                        How can I improve crop yield?
-                    </button>
-
-                    <button
-                        type="button"
-                        class="quick-question"
-                    >
-                        How can I prevent diseases?
-                    </button>
-
-                </div>
-
+                <h3>⚡ <span data-i18n="quickTitle">Quick Questions</span></h3>
+                <p data-i18n="quickHint">Click one to use it.</p>
+                <div id="quickQuestions"></div>
             </div>
 
         </div>
@@ -544,189 +228,65 @@
         <div class="form-card">
 
             <div class="form-card-head">
-
-                <div class="ai-dot">
-                    🤖
-                </div>
-
+                <div class="ai-dot">🤖</div>
                 <div>
-
-                    <h3>
-                        AI Farming Advisor
-                    </h3>
-
-                    <p>
-                        Ready to help your farm
-                    </p>
-
+                    <h3 data-i18n="formTitle">AI Farming Advisor</h3>
+                    <p data-i18n="formSub">Ready to help your farm</p>
                 </div>
-
             </div>
-
 
             <form id="farmForm">
 
-
                 <div class="form-grid">
 
-
                     <div class="field">
-
-                        <label>
-                            👨‍🌾 Farmer Name
-                        </label>
-
-                        <input
-                            type="text"
-                            id="farmerName"
-                            placeholder="Enter your name"
-                            required
-                        >
-
+                        <label for="farmerName">👨‍🌾 <span data-i18n="lName">Farmer Name</span></label>
+                        <input type="text" id="farmerName" data-i18n-ph="pName" placeholder="Enter your name" maxlength="60" required>
                     </div>
 
-
                     <div class="field">
-
-                        <label>
-                            📍 Location
-                        </label>
-
-                        <input
-                            type="text"
-                            id="location"
-                            placeholder="Pune, Maharashtra"
-                            required
-                        >
-
+                        <label for="location">📍 <span data-i18n="lLoc">Location</span></label>
+                        <input type="text" id="location" data-i18n-ph="pLoc" placeholder="Pune, Maharashtra" maxlength="100" required>
                     </div>
-
 
                     <div class="field full-width">
-
-                        <label>
-                            🌾 Crop Name
-                        </label>
-
-                        <input
-                            type="text"
-                            id="crop"
-                            placeholder="Example: Sugarcane, Tomato, Wheat..."
-                            required
-                            autocomplete="off"
-                        >
-
+                        <label for="crop">🌾 <span data-i18n="lCrop">Crop Name</span></label>
+                        <input type="text" id="crop" data-i18n-ph="pCrop" placeholder="Example: Sugarcane, Tomato, Wheat..." maxlength="60" required autocomplete="off">
                     </div>
-
 
                     <div class="field">
-
-                        <label>
-                            🟤 Soil Type
-                        </label>
-
-                        <select
-                            id="soil"
-                            required
-                        >
-
-                            <option value="">
-                                Select soil
-                            </option>
-
-                            <option>
-                                Black
-                            </option>
-
-                            <option>
-                                Red
-                            </option>
-
-                            <option>
-                                Sandy
-                            </option>
-
-                            <option>
-                                Clay
-                            </option>
-
-                            <option>
-                                Loamy
-                            </option>
-
+                        <label for="soil">🟤 <span data-i18n="lSoil">Soil Type</span></label>
+                        <select id="soil" required>
+                            <option value="" data-i18n="optSoil">Select soil</option>
+                            <option value="Black" data-i18n="soilBlack">Black</option>
+                            <option value="Red" data-i18n="soilRed">Red</option>
+                            <option value="Sandy" data-i18n="soilSandy">Sandy</option>
+                            <option value="Clay" data-i18n="soilClay">Clay</option>
+                            <option value="Loamy" data-i18n="soilLoamy">Loamy</option>
                         </select>
-
                     </div>
-
 
                     <div class="field">
-
-                        <label>
-                            🌦️ Season
-                        </label>
-
-                        <select
-                            id="season"
-                            required
-                        >
-
-                            <option value="">
-                                Select season
-                            </option>
-
-                            <option>
-                                Summer
-                            </option>
-
-                            <option>
-                                Winter
-                            </option>
-
-                            <option>
-                                Monsoon
-                            </option>
-
-                            <option>
-                                Spring
-                            </option>
-
+                        <label for="season">🌦️ <span data-i18n="lSeason">Season</span></label>
+                        <select id="season" required>
+                            <option value="" data-i18n="optSeason">Select season</option>
+                            <option value="Summer" data-i18n="seasonSummer">Summer</option>
+                            <option value="Winter" data-i18n="seasonWinter">Winter</option>
+                            <option value="Monsoon" data-i18n="seasonMonsoon">Monsoon</option>
+                            <option value="Spring" data-i18n="seasonSpring">Spring</option>
                         </select>
-
                     </div>
-
 
                     <div class="field full-width">
-
-                        <label>
-                            💬 Your Farming Question
-                        </label>
-
-                        <textarea
-                            id="question"
-                            rows="6"
-                            placeholder="Describe your crop problem or ask a farming question..."
-                            required
-                        ></textarea>
-
+                        <label for="question">💬 <span data-i18n="lQuestion">Your Farming Question</span></label>
+                        <textarea id="question" rows="6" data-i18n-ph="pQuestion" placeholder="Describe your crop problem or ask a farming question..." maxlength="600" required></textarea>
                     </div>
 
                 </div>
 
-
-                <button
-                    id="submitBtn"
-                    class="submit-btn"
-                    type="submit"
-                >
-
-                    <span>
-                        🤖 Get AI Advice
-                    </span>
-
-                    <span>
-                        →
-                    </span>
-
+                <button id="submitBtn" class="submit-btn" type="submit">
+                    <span>🤖 Get AI Advice</span>
+                    <span>→</span>
                 </button>
 
             </form>
@@ -738,52 +298,20 @@
 
     <!-- LOADING -->
 
-    <div
-        id="loadingPanel"
-        class="loading-panel"
-    >
+    <div id="loadingPanel" class="loading-panel">
 
         <div class="loading-card">
 
-            <div class="loader-plant">
-                🌱
-            </div>
+            <div class="loader-plant">🌱</div>
 
-            <h3>
-                SmartFarm AI is Thinking...
-            </h3>
-
-            <p>
-                Analysing your farm conditions
-            </p>
-
+            <h3 data-i18n="loadT">SmartFarm AI is Thinking...</h3>
+            <p data-i18n="loadSub">Analysing your farm conditions</p>
 
             <div class="analysis-steps">
-
-                <div>
-                    <span>🌾</span>
-                    Analysing crop condition
-                    <b>✓</b>
-                </div>
-
-                <div>
-                    <span>🟤</span>
-                    Checking soil information
-                    <b>✓</b>
-                </div>
-
-                <div>
-                    <span>💧</span>
-                    Evaluating irrigation needs
-                    <i></i>
-                </div>
-
-                <div>
-                    <span>🐛</span>
-                    Checking possible risks
-                    <i></i>
-                </div>
-
+                <div><span>🌾</span> <em data-i18n="ls1">Analysing crop condition</em> <b>✓</b></div>
+                <div><span>🟤</span> <em data-i18n="ls2">Checking soil information</em> <b>✓</b></div>
+                <div><span>💧</span> <em data-i18n="ls3">Evaluating irrigation needs</em> <i></i></div>
+                <div><span>🐛</span> <em data-i18n="ls4">Checking possible risks</em> <i></i></div>
             </div>
 
         </div>
@@ -793,129 +321,61 @@
 
     <!-- RESULT -->
 
-    <div
-        id="result"
-        class="result-card"
-    >
+    <div id="result" class="result-card">
 
         <div class="result-header">
 
             <div>
-
-                <span class="eyebrow">
-                    AI GENERATED ADVICE
-                </span>
-
-                <h2>
-                    🌱 SmartFarm Analysis
-                </h2>
-
+                <span class="eyebrow" data-i18n="resEyebrow">AI GENERATED ADVICE</span>
+                <h2>🌱 <span data-i18n="resTitle">SmartFarm Analysis</span></h2>
             </div>
 
-            <div class="result-status">
-                ● AI Ready
-            </div>
+            <div class="result-status">● <span data-i18n="resStatus">AI Ready</span></div>
 
         </div>
 
-
-        <div
-            id="cropInsights"
-            class="insight-grid"
-        >
+        <div id="cropInsights" class="insight-grid">
 
             <div class="insight">
-                <span>🌾</span>
-                <small>CROP</small>
-                <strong id="insightCrop">
-                    -
-                </strong>
+                <span id="insightCropIcon">🌱</span>
+                <small data-i18n="iCrop">CROP</small>
+                <strong id="insightCrop">-</strong>
             </div>
 
             <div class="insight">
                 <span>🟤</span>
-                <small>SOIL</small>
-                <strong id="insightSoil">
-                    -
-                </strong>
+                <small data-i18n="iSoil">SOIL</small>
+                <strong id="insightSoil">-</strong>
             </div>
 
             <div class="insight">
                 <span>🌦️</span>
-                <small>SEASON</small>
-                <strong id="insightSeason">
-                    -
-                </strong>
+                <small data-i18n="iSeason">SEASON</small>
+                <strong id="insightSeason">-</strong>
             </div>
 
             <div class="insight">
                 <span>📍</span>
-                <small>LOCATION</small>
-                <strong id="insightLocation">
-                    -
-                </strong>
+                <small data-i18n="iLoc">LOCATION</small>
+                <strong id="insightLocation">-</strong>
             </div>
 
         </div>
 
-
-        <div
-            id="aiResponse"
-            class="ai-response"
-        ></div>
-
+        <div id="aiResponse" class="ai-response"></div>
 
         <div class="result-tools">
 
             <div class="voice-tools">
-
-                <button
-                    id="speakBtn"
-                    type="button"
-                >
-                    🔊 Listen
-                </button>
-
-                <button
-                    id="pauseBtn"
-                    type="button"
-                >
-                    ⏸ Pause
-                </button>
-
-                <button
-                    id="resumeBtn"
-                    type="button"
-                >
-                    ▶ Resume
-                </button>
-
-                <button
-                    id="stopBtn"
-                    type="button"
-                >
-                    ⏹ Stop
-                </button>
-
+                <button id="speakBtn" type="button">🔊 <span data-i18n="listen">Listen</span></button>
+                <button id="pauseBtn" type="button">⏸ <span data-i18n="pause">Pause</span></button>
+                <button id="resumeBtn" type="button">▶ <span data-i18n="resume">Resume</span></button>
+                <button id="stopBtn" type="button">⏹ <span data-i18n="stop">Stop</span></button>
             </div>
 
-
             <div class="action-tools">
-
-                <button
-                    id="copyBtn"
-                    type="button"
-                >
-                    📋 Copy
-                </button>
-
-                <button
-                    id="downloadBtn"
-                    type="button"
-                >
-                    📄 Download
-                </button>
-
+                <button id="copyBtn" type="button">📋 <span data-i18n="copy">Copy</span></button>
+                <button id="downloadBtn" type="button">📄 <span data-i18n="download">Download</span></button>
             </div>
 
         </div>
@@ -923,94 +383,42 @@
     </div>
 
 </section>
-
 
 
 <!-- HISTORY -->
 
-<section
-    id="history"
-    class="history-section"
->
+<section id="history" class="history-section">
 
     <div class="section-heading">
-
-        <span class="eyebrow">
-            YOUR ACTIVITY
-        </span>
-
-        <h2>
-            Recent Farming Questions
-        </h2>
-
-        <p>
-            Your recent advice is saved only
-            in this browser.
-        </p>
-
+        <span class="eyebrow" data-i18n="histEyebrow">YOUR ACTIVITY</span>
+        <h2 data-i18n="histTitle">Recent Farming Questions</h2>
+        <p data-i18n="histText">Your recent advice is saved only in this browser.</p>
     </div>
 
+    <div id="historyList" class="history-list"></div>
 
-    <div
-        id="historyList"
-        class="history-list"
-    >
-
-        <div class="empty-history">
-
-            🌱
-
-            <p>
-                No farming questions yet.
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <button
-        id="clearHistory"
-        class="clear-history"
-        type="button"
-    >
-        Clear History
-    </button>
+    <button id="clearHistory" class="clear-history" type="button" data-i18n="clearHist">Clear History</button>
 
 </section>
-
 
 
 <!-- FOOTER -->
 
 <footer>
 
-    <div class="footer-logo">
-        🌱 SmartFarm AI
-    </div>
+    <div class="footer-logo">🌱 SmartFarm AI</div>
 
-    <p>
-        AI-powered guidance for smarter farming.
-    </p>
+    <p data-i18n="footTag">AI-powered guidance for smarter farming.</p>
 
-    <small>
-        For general guidance only. Consult local
-        agricultural experts for important treatment decisions.
-    </small>
+    <small data-i18n="footNote">For general guidance only. Consult local agricultural experts for important treatment decisions.</small>
 
-    <div class="footer-bottom">
-        © 2026 SmartFarm AI
-    </div>
+    <div class="footer-bottom">© 2026 SmartFarm AI</div>
 
 </footer>
 
+<div id="toast" class="toast"></div>
 
-<div
-    id="toast"
-    class="toast"
-></div>
-
-
+<script src="i18n.js"></script>
 <script src="script.js"></script>
 
 </body>
